@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Article;
 use App\Form\ArticleType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+
 
 class BlogController extends AbstractController
 {
@@ -22,6 +25,8 @@ class BlogController extends AbstractController
 
     public function add(Request $request)
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $article = new Article();
         $form = $this->createForm(ArticleType::class, $article);
 
@@ -70,6 +75,9 @@ class BlogController extends AbstractController
         ]);
     }
 
+    /**
+     * @IsGranted("ROLE_ADMIN")
+     */
     public function edit(Article $article, Request $request)
     {
         $oldPicture = $article->getPicture();
@@ -115,9 +123,29 @@ class BlogController extends AbstractController
         ]);
     }
 
-    public function delete($id)
+    public function remove(Article $article)
     {
-        return new Response('<h1>Supprimer l\'article :'.$id.'</h1>');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($article);
+        $em->flush();
+
+        return $this->redirectToRoute('admin');
     }
 
+    public function admin()
+    {
+        $articles = $this->getDoctrine()->getRepository(Article::class)->findBy(
+            [],
+            ['lastUpdateDate' => 'DESC']
+        );
+
+        $users = $this->getDoctrine()->getRepository(User::class)->findAll();
+
+        return $this->render('admin/index.html.twig', [
+            'articles' => $articles,
+            'users' => $users
+        ]);
+    }
 }

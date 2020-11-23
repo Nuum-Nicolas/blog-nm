@@ -1,4 +1,5 @@
 {# templates/base.html.twig #}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,15 +16,21 @@
 <nav>
     <div class="nav-wrapper">
         <div class="container">
-            <a href="#" class="brand-logo">Symfony Blog</a>
+            <a href="{{ path('homepage') }}" class="brand-logo">Symfony Blog</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Login</a></li>
+                <li><a href="{{ path('homepage') }}">Home</a></li>
+                {% if app.user %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li><a href="/admin">Admin.</a></li>
+                    {% endif %}
+                    <li><a href="/logout">Logout</a></li>
+                {% else %}
+                    <li><a href="/login">Login</a></li>
+                {% endif %}
             </ul>
         </div>
     </div>
 </nav>
-
 {% block content %}
 
 {% endblock %}
